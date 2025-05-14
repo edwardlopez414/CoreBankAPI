@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "dgSpecHash": "8y74LVYHdmpW8cBs6x1IvBkIOsfWSrL9Pcc4IB29Lo+0erq4d9rWsAJTYWz83QheuR/mHpnoZeY8NLr9Y06vsA==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\edward.lopez\\source\\repos\\CoreBankAPI\\CoreBankAPI.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\edward.lopez\\.nuget\\packages\\microsoft.extensions.apidescription.server\\6.0.5\\microsoft.extensions.apidescription.server.6.0.5.nupkg.sha512",
+    "C:\\Users\\edward.lopez\\.nuget\\packages\\microsoft.openapi\\1.2.3\\microsoft.openapi.1.2.3.nupkg.sha512",
+    "C:\\Users\\edward.lopez\\.nuget\\packages\\swashbuckle.aspnetcore\\6.4.0\\swashbuckle.aspnetcore.6.4.0.nupkg.sha512",
+    "C:\\Users\\edward.lopez\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\6.4.0\\swashbuckle.aspnetcore.swagger.6.4.0.nupkg.sha512",
+    "C:\\Users\\edward.lopez\\.nuget\\packages\\swashbuckle.aspnetcore.swaggergen\\6.4.0\\swashbuckle.aspnetcore.swaggergen.6.4.0.nupkg.sha512",
+    "C:\\Users\\edward.lopez\\.nuget\\packages\\swashbuckle.aspnetcore.swaggerui\\6.4.0\\swashbuckle.aspnetcore.swaggerui.6.4.0.nupkg.sha512"
+  ],
+  "logs": []
+}
