@@ -1,6 +1,13 @@
+using CoreBankAPI.CoreDbContext;
+using CoreBankAPI.Logic.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using CoreBankAPI.Logic;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddDbContext<CoreDb>(options => options.UseSqlite("Data source=banco.db"));
+builder.Services.AddScoped<IUserManager, UserManager>();
+builder.Services.AddScoped<IAccountManager, AccountManager>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

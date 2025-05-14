@@ -2,7 +2,7 @@
 {
     public class AccountDto
     {
-        public string? UserId { get; set; }
-        public string? InitialBalance { get; set; }
+        public int UserId { get; set; }
+        public int InitialBalance { get; set; }
     }
 }
