@@ -20,10 +20,4 @@
     <PackageReference Include="xunit" Version="2.9.3" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="Test\TransactionManagerTests.cs">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Compile>
-  </ItemGroup>
-
 </Project>
