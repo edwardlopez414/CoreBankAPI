@@ -93,5 +93,19 @@ namespace CoreBankAPI.Logic.Validator
             return (false, error);
         }
         #endregion
+        #region validacion de request de AccountManager
+        public (bool, ErrorModel) validateModel(AccountDto model)
+        {
+            ErrorModel error = new ErrorModel();
+
+            if (model.InitialBalance < 0)
+            {
+                error.status = "required field";
+                error.text = "the field InitialBalance must be greater than zero";
+                return (true, error);
+            }
+            return (false, error);
+        }
+        #endregion
     }
 }

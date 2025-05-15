@@ -1,10 +1,8 @@
 ﻿using CoreBankAPI.CoreDbContext;
 using CoreBankAPI.Data;
 using CoreBankAPI.Logic.Interfaces;
+using CoreBankAPI.Logic.Validator;
 using CoreBankAPI.Models;
-using System.Linq.Expressions;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-
 
 namespace CoreBankAPI.Logic
 {
@@ -14,11 +12,13 @@ namespace CoreBankAPI.Logic
         private static readonly Random _random = new();
         IUserRepository _userRepository;
         IAccountRepository _accountRepository;
-        public AccountManager(CoreDb db, IUserRepository _userRepository, IAccountRepository _accountRepository) 
+        ValidateRequest validate;
+        public AccountManager(CoreDb db, IUserRepository _userRepository, IAccountRepository _accountRepository, ValidateRequest validate) 
         {
             this.db = db;
             this._userRepository = _userRepository;
             this._accountRepository = _accountRepository;
+            this.validate = validate;
         }
         public (bool, ErrorModel, BalanceResponse) balance(BalanceDto model)
         {
@@ -58,7 +58,7 @@ namespace CoreBankAPI.Logic
 
             try
             {
-                (bool validatereq, var error) = validateModel(model);
+                (bool validatereq, var error) = validate.validateModel(model);
                 if (validatereq) return (true, error, response);
 
                 var userId = _userRepository.GetById(model.UserId);
@@ -101,19 +101,6 @@ namespace CoreBankAPI.Logic
                 return (true, errorInaccount, response);
             }
 
-        }
-
-        public (bool, ErrorModel) validateModel(AccountDto model) 
-        {
-            ErrorModel error = new ErrorModel();
-
-            if (model.InitialBalance < 0)
-            {
-                error.status = "required field";
-                error.text = "the field InitialBalance must be greater than zero";
-                return (true, error);
-            }
-            return (false, error);
         }
         public static string Generate()
         {
