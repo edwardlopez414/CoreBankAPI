@@ -31,7 +31,7 @@ namespace CoreBankAPI.Logic
                 {
                     identifier = model.identifier,
                     UserId = account.UserId,
-                    Balance = account.InitialBalance,
+                    Balance = account.Balance,
                     Currency = account.Currency,
                     Isactive = account.Isactive,
                     Registered = account.Registered
@@ -62,7 +62,7 @@ namespace CoreBankAPI.Logic
                 identifier = Generate(),
                 UserId = model.UserId,
                 Currency = "NIO",
-                InitialBalance = model.InitialBalance,
+                Balance = model.InitialBalance,
                 Registered = DateTime.Now,
                 Isactive = true,
             };
@@ -73,7 +73,7 @@ namespace CoreBankAPI.Logic
             response = new AccountResponse 
             {
                 identifier = account.identifier,
-                balance = account.InitialBalance
+                balance = account.Balance
             };
             
             return (false, error, response);
@@ -87,7 +87,7 @@ namespace CoreBankAPI.Logic
             if (model.InitialBalance < 0)
             {
                 error.status = "required field";
-                error.text = "the field Income must be greater than zero";
+                error.text = "the field InitialBalance must be greater than zero";
                 return (true, error);
             }
             return (false, error);

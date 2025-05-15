@@ -40,10 +40,10 @@ namespace CoreBankAPI.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    identifier = table.Column<string>(type: "TEXT", nullable: false),
+                    identifier = table.Column<string>(type: "TEXT", nullable: true),
                     UserId = table.Column<int>(type: "INTEGER", nullable: false),
                     Currency = table.Column<string>(type: "TEXT", nullable: true),
-                    InitialBalance = table.Column<int>(type: "INTEGER", nullable: false),
+                    Balance = table.Column<int>(type: "INTEGER", nullable: false),
                     Registered = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Isactive = table.Column<bool>(type: "INTEGER", nullable: false)
                 },

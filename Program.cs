@@ -8,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<CoreDb>(options => options.UseSqlite("Data source=banco.db"));
 builder.Services.AddScoped<IUserManager, UserManager>();
 builder.Services.AddScoped<IAccountManager, AccountManager>();
+builder.Services.AddScoped<ITransacionManager, TransactionManager>();
+
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

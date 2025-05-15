@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CoreBankAPI.Migrations
 {
     [DbContext(typeof(CoreDb))]
-    [Migration("20250514202631_Inicial")]
+    [Migration("20250514215747_Inicial")]
     partial class Inicial
     {
         /// <inheritdoc />
@@ -27,13 +27,13 @@ namespace CoreBankAPI.Migrations
                         .HasColumnType("INTEGER")
                         .HasColumnName("Id");
 
+                    b.Property<int>("Balance")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("Balance");
+
                     b.Property<string>("Currency")
                         .HasColumnType("TEXT")
                         .HasColumnName("Currency");
-
-                    b.Property<int>("InitialBalance")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("InitialBalance");
 
                     b.Property<bool>("Isactive")
                         .HasColumnType("INTEGER")
@@ -48,7 +48,6 @@ namespace CoreBankAPI.Migrations
                         .HasColumnName("UserId");
 
                     b.Property<string>("identifier")
-                        .IsRequired()
                         .HasColumnType("TEXT")
                         .HasColumnName("identifier");
 

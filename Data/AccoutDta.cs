@@ -7,11 +7,11 @@ namespace CoreBankAPI.Data
     {
         [Key]
         public int Id { get; set; }
-        public string identifier { get; set; }
+        public string? identifier { get; set; }
         [ForeignKey("UserDta")]
         public int UserId { get; set; }
         public string? Currency { get; set; }
-        public int InitialBalance { get; set; }
+        public int Balance { get; set; }
         public DateTime Registered { get; set; }
         public bool Isactive { get; set; }
         public UserDta User { get; set; }

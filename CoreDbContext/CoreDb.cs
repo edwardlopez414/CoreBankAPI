@@ -9,7 +9,7 @@ namespace CoreBankAPI.CoreDbContext
 
         public virtual DbSet<UserDta> UserDta { get; set; }
         public virtual DbSet<AccoutDta> AccountDta { get; set; }
-        public virtual DbSet<TransactionDta> TransactionDa { get; set; }
+        public virtual DbSet<TransactionDta> TransactionDta { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -53,8 +53,8 @@ namespace CoreBankAPI.CoreDbContext
                 .HasColumnName("UserId");
                 entity.Property(a => a.Currency)
                 .HasColumnName("Currency");
-                entity.Property(a => a.InitialBalance)
-                .HasColumnName("InitialBalance");
+                entity.Property(a => a.Balance)
+                .HasColumnName("Balance");
                 entity.Property(a => a.Registered)
                 .HasColumnName("Registered");
                 entity.Property(a => a.Isactive)
