@@ -2,8 +2,9 @@
 using CoreBankAPI.Data;
 using CoreBankAPI.Logic.Interfaces;
 using CoreBankAPI.Models;
-using System;
+using System.Linq.Expressions;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+
 
 namespace CoreBankAPI.Logic
 {
@@ -11,17 +12,18 @@ namespace CoreBankAPI.Logic
     {
         CoreDb db;
         private static readonly Random _random = new();
-        public AccountManager(CoreDb db) 
+        IUserRepository _userRepository;
+        IAccountRepository _accountRepository;
+        public AccountManager(CoreDb db, IUserRepository _userRepository, IAccountRepository _accountRepository) 
         {
             this.db = db;
+            this._userRepository = _userRepository;
+            this._accountRepository = _accountRepository;
         }
         public (bool, ErrorModel, BalanceResponse) balance(BalanceDto model)
         {
             ErrorModel error = new ErrorModel();
-            var account = db.AccountDta
-                .Where(a => a.identifier == model.identifier)
-                .Select(a => a)
-                .FirstOrDefault();
+            var account = _accountRepository.GetByIdentifier(model.identifier!);
 
             BalanceResponse response = new BalanceResponse();
 
@@ -54,29 +56,50 @@ namespace CoreBankAPI.Logic
         {
             AccountResponse response = new AccountResponse();
 
-            (bool validatereq,var error) = validateModel(model);
-            if (validatereq) return (true, error , response);
-
-            AccoutDta account = new AccoutDta 
+            try
             {
-                identifier = Generate(),
-                UserId = model.UserId,
-                Currency = "NIO",
-                Balance = model.InitialBalance,
-                Registered = DateTime.Now,
-                Isactive = true,
-            };
+                (bool validatereq, var error) = validateModel(model);
+                if (validatereq) return (true, error, response);
 
-            db.AccountDta.Add(account);
-            db.SaveChanges();
+                var userId = _userRepository.GetById(model.UserId);
+                if (userId == null)
+                {
+                    error.status = "user not found";
+                    error.text = "validate UserId";
 
-            response = new AccountResponse 
+                    return (true, error, response);
+                }
+
+                AccoutDta account = new AccoutDta
+                {
+                    identifier = Generate(),
+                    UserId = userId.Id,
+                    Currency = "NIO",
+                    Balance = model.InitialBalance,
+                    Registered = DateTime.Now,
+                    Isactive = true,
+                };
+
+                _accountRepository.add(account);
+                db.SaveChanges();
+
+                response = new AccountResponse
+                {
+                    Identifier = account.identifier,
+                    Balance = account.Balance
+                };
+
+                return (false, error, response);
+            }
+            catch (Exception ex) 
             {
-                identifier = account.identifier,
-                balance = account.Balance
-            };
-            
-            return (false, error, response);
+                ErrorModel errorInaccount = new ErrorModel
+                {
+                    status = "error",
+                    text = $"Transaction failed: {ex.Message}"
+                };
+                return (true, errorInaccount, response);
+            }
 
         }
 

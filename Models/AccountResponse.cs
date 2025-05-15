@@ -2,7 +2,7 @@
 {
     public class AccountResponse
     {
-        public string? identifier { get; set; }
-        public int balance { get; set; }
+        public string? Identifier { get; set; }
+        public decimal Balance { get; set; }
     }
 }

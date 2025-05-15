@@ -4,7 +4,9 @@
     {
         public string? Account { get; set; }
         public string? Type { get; set; }
-        public int TransactionAmount { get; set; }
+        public decimal TransactionAmount { get; set; }
         public DateTime Registered { get; set; }
+        public string Descriptio { get; set; }
+        public string? Identifier { get; set; }
     }
 }

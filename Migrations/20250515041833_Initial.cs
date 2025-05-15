@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace CoreBankAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class Inicial : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -43,7 +43,7 @@ namespace CoreBankAPI.Migrations
                     identifier = table.Column<string>(type: "TEXT", nullable: true),
                     UserId = table.Column<int>(type: "INTEGER", nullable: false),
                     Currency = table.Column<string>(type: "TEXT", nullable: true),
-                    Balance = table.Column<int>(type: "INTEGER", nullable: false),
+                    Balance = table.Column<decimal>(type: "TEXT", nullable: false),
                     Registered = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Isactive = table.Column<bool>(type: "INTEGER", nullable: false)
                 },
@@ -66,10 +66,11 @@ namespace CoreBankAPI.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     Accountid = table.Column<int>(type: "INTEGER", nullable: false),
                     Type = table.Column<string>(type: "TEXT", nullable: true),
-                    Amount = table.Column<int>(type: "INTEGER", nullable: false),
+                    Amount = table.Column<decimal>(type: "TEXT", nullable: false),
                     Description = table.Column<string>(type: "TEXT", nullable: true),
                     Registered = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    Isreversed = table.Column<bool>(type: "INTEGER", nullable: true)
+                    Isreversed = table.Column<bool>(type: "INTEGER", nullable: true),
+                    identifier = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {

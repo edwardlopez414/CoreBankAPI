@@ -1,6 +1,7 @@
 ﻿using CoreBankAPI.CoreDbContext;
 using CoreBankAPI.Data;
 using CoreBankAPI.Logic.Interfaces;
+using CoreBankAPI.Logic.Validator;
 using CoreBankAPI.Models;
 
 namespace CoreBankAPI.Logic
@@ -8,15 +9,36 @@ namespace CoreBankAPI.Logic
     public class UserManager : IUserManager
     {
         CoreDb db;
-        public UserManager(CoreDb db) 
+        ValidateRequest ValRequest;
+        IUserRepository _userRepository;
+        public UserManager(CoreDb db, ValidateRequest ValRequest, IUserRepository _userRepository) 
         {
             this.db = db;
+            this.ValRequest = ValRequest;
+            this._userRepository = _userRepository;
         }
         public (bool,ErrorModel, UserResponse) Insert(UserDto model)
         {
+            ErrorModel userexist = new();
+            var userFound = _userRepository.GetByIdNumber(model.Idnumber!, model.Idtype!);
+            if (userFound != null) 
+            {
+               var responseUser = new UserResponse
+                {
+                    id = userFound.Id,
+                    FirstName = userFound.FirstName,
+                    MiddleName = userFound.MiddleName,
+                    LastName = userFound.LastName,
+                    LastName2 = userFound.LastName2
+
+                };
+                return (false, userexist, responseUser);
+
+            }
+
             UserResponse response = new UserResponse();
 
-            (bool iserror, var error) = ValidateModel(model);
+            (bool iserror, var error) = ValRequest.ValidateModel(model);
             if (iserror) return (true, error, response);
 
             UserDta user = new UserDta
@@ -33,18 +55,13 @@ namespace CoreBankAPI.Logic
                 Registered = DateTime.Now,
                 Isactive = true,
             };
-
-            db.UserDta.Add(user);
+            _userRepository.add(user);
             db.SaveChanges();
 
-            var userId = db.UserDta
-                .Where(c => c.Idnumber == model.Idnumber && c.Idtype == model.Idtype)
-                .Select(a => a.Id)
-                .FirstOrDefault();
-
+            var userId = _userRepository.GetByIdNumber(model.Idnumber!, model.Idtype!);
              response = new UserResponse
             {
-                id = userId,
+                id = userId.Id,
                 FirstName = model.FirstName,
                 MiddleName = model.MiddleName,
                 LastName = model.LastName,
@@ -52,62 +69,6 @@ namespace CoreBankAPI.Logic
             };
 
             return (false, error, response);
-        }
-
-        public (bool, ErrorModel) ValidateModel(UserDto model)
-        {
-            ErrorModel error = new ErrorModel();
-            if (string.IsNullOrEmpty(model.FirstName)) 
-            {
-                error.status = "required field";
-                error.text = "the field FirstName is required";
-                return (true, error);
-            }
-            if (string.IsNullOrEmpty(model.MiddleName)) 
-            {
-                error.status = "required field";
-                error.text = "the field MiddleName is required";
-                return (true, error);
-            }
-            if (string.IsNullOrEmpty(model.LastName))
-            {
-                error.status = "required field";
-                error.text = "the field LastName is required";
-                return (true, error);
-            }
-            if (string.IsNullOrEmpty(model.LastName2))
-            {
-                error.status = "required field";
-                error.text = "the field LastName2 is required";
-                return (true, error);
-            }
-            if (string.IsNullOrEmpty(model.Idtype))
-            {
-                error.status = "required field";
-                error.text = "the field Idtype is required";
-                return (true, error);
-            }
-            if (string.IsNullOrEmpty(model.Idnumber))
-            {
-                error.status = "required field";
-                error.text = "the field Idnumber is required";
-                return (true, error);
-            }
-            if (string.IsNullOrEmpty(model.Gender))
-            {
-                error.status = "required field";
-                error.text = "the field Gender is required";
-                return (true, error);
-            }
-            if (model.Income < 0)
-            {
-                error.status = "required field";
-                error.text = "the field Income must be greater than zero";
-                return (true, error);
-            }
-
-
-            return (false, error);
         }
     }
 }

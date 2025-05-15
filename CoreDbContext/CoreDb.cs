@@ -76,7 +76,8 @@ namespace CoreBankAPI.CoreDbContext
                 .HasColumnName("Description");
                 entity.Property(a => a.Isreversed)
                 .HasColumnName("Isreversed");
-
+                entity.Property(a => a.identifier)
+                .HasColumnName("identifier");
                 entity.HasOne(a => a.Account)
                .WithMany(u => u.Transactions)
                .HasForeignKey(t => t.AccountId);

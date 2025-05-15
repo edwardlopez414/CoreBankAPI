@@ -2,156 +2,167 @@
 using CoreBankAPI.Data;
 using CoreBankAPI.Logic.Interfaces;
 using CoreBankAPI.Models;
-using Microsoft.AspNetCore.Mvc;
+using CoreBankAPI.Logic.Validator;
 
 namespace CoreBankAPI.Logic
 {
     public class TransactionManager : ITransacionManager
     {
         CoreDb db;
-        public TransactionManager(CoreDb db) 
+        ValidateRequest ValRequest = new ValidateRequest();
+        ITransactionRepository _transactionRepository;
+        IAccountRepository _accountRepository;
+        private static readonly Random _random = new();
+        public TransactionManager(CoreDb db, ValidateRequest ValRequest, ITransactionRepository _transactionRepository, IAccountRepository _accountRepository)
         {
             this.db = db;
+            this.ValRequest = ValRequest;
+            this._accountRepository = _accountRepository;
+            this._transactionRepository = _transactionRepository;
         }
         public (bool, ErrorModel, TransactionResponse) deposit(TransactionDto model)
         {
-            TransactionResponse response = new TransactionResponse();
-            (bool iserror, var error) = validateModel(model);
-            if (iserror) return (true, error, response);
+            return ProcessTransaction(
+                                        model,
+                                        "DEPOSIT",
+                                        (balance, amount) => true, // siempre permitido
+                                        (balance, amount) => balance + amount
+                                      );
+        }
 
-            //agregamos la cantidad al monto actual 
-            var account = db.AccountDta.Where(a => a.identifier == model.Identifier).Select(b => b).FirstOrDefault();
-
-            account.Balance += model.Amount;
-
-            db.AccountDta.Update(account);
-
-            //registramos la transaccion
-            TransactionDta transaction = new TransactionDta 
-            {
-                AccountId = account.Id,
-                Type = "DEPOSIT",
-                Amount = model.Amount,
-                Description = model.Description,
-                Registered = DateTime.Now,
-                Isreversed = false,
-            };
-            db.TransactionDta.Add(transaction);
-            db.SaveChanges();
-
-            response = new TransactionResponse 
-            {
-                Status = "completed",
-                Account = account.identifier,
-                BalanceAccount = account.Balance,
-                TransactionAmount = model.Amount
-            };
-
-            return (false, error, response);
-            
+        public (bool, ErrorModel, TransactionResponse) withdrawals(TransactionDto model)
+        {
+            return ProcessTransaction(
+                                      model,
+                                      "WITHDRAWALS",
+                                      (balance, amount) => balance >= amount,
+                                      (balance, amount) => balance - amount
+                                      );
         }
 
         public (bool, ErrorModel, HistoryResponse) history(TransactionHistoryDto model)
         {
             HistoryResponse response = new HistoryResponse();
-            response.Details = new List<HistoryInfo>();
-            (bool iserror, var error) = validateModel(model);
-            if (iserror) return (true, error, response);
+            try
+            {           
+                response.Details = new List<HistoryInfo>();
 
-            //agregamos la cantidad al monto actual 
-            var account = db.AccountDta.Where(a => a.identifier == model.Identifier).Select(b => b).FirstOrDefault();
+                (bool iserror, var error) = ValRequest.validateModel(model);
+                if (iserror) return (true, error, response);
 
-            var History = db.TransactionDta.Where(a => a.AccountId == account.Id).Select(b => b).ToList();
+                //agregamos la cantidad al monto actual 
+                var account = _accountRepository.GetByIdentifier(model.Identifier!);
 
-            if (History != null)
-            {
+                var History = _transactionRepository.GetByAccountId(account!.Id);
 
-                foreach (var item in History)
+                if (History != null)
                 {
-                    response.Details.Add(new HistoryInfo
-                    {
-                        Account = model.Identifier,
-                        Type = item.Type,
-                        TransactionAmount = item.Amount
-                    });
-                }
-                response.AccountBalance = account.Balance;
 
-                return (false, error, response);
+                    foreach (var item in History)
+                    {
+                        response.Details.Add(new HistoryInfo
+                        {
+                            Account = model.Identifier,
+                            Type = item.Type,
+                            TransactionAmount = item.Amount,
+                            Descriptio = item.Description!,
+                            Identifier = item.identifier
+                        });
+                    }
+                    response.AccountBalance = account.Balance;
+
+                    return (false, error, response);
+                }
+                else
+                {
+                    //el cliente no tiene transacciones
+                    return (false, error, response);
+                }
             }
-            else 
+            catch (Exception ex) 
             {
-                //el cliente no tiene transacciones
-                return (false, error, response);
+                ErrorModel error = new ErrorModel
+                {
+                    status = "error",
+                    text = $"Transaction failed: {ex.Message}"
+                };
+                return (true, error, response);
             }
         }
     
-
-        public (bool, ErrorModel, TransactionResponse) withdrawals(TransactionDto model)
+        private (bool, ErrorModel, TransactionResponse) ProcessTransaction(TransactionDto model,string type,Func<decimal, decimal, bool> condition,Func<decimal, decimal, decimal> operation)
         {
             TransactionResponse response = new TransactionResponse();
-            (bool iserror, var error) = validateModel(model);
-            if (iserror) return (true, error, response);
-
-            //agregamos la cantidad al monto actual 
-            var account = db.AccountDta.Where(a => a.identifier == model.Identifier).Select(b => b).FirstOrDefault();
-
-            account.Balance -= model.Amount;
-
-            db.AccountDta.Update(account);
-
-            //registramos la transaccion
-            TransactionDta transaction = new TransactionDta
+            try
             {
-                AccountId = account.Id,
-                Type = "WITHDRAWALS",
-                Amount = model.Amount,
-                Description = model.Description,
-                Registered = DateTime.Now,
-                Isreversed = false,
+                (bool iserror, var error) = ValRequest.validateModel(model);
+                if (iserror) return (true, error, response);
+
+                var account = _accountRepository.GetByIdentifier(model.Identifier!);
+                if (account == null)
+                {
+                    error = new ErrorModel
+                    {
+                        status = "not found",
+                        text = "Account not found"
+                    };
+                    return (true, error, response);
+                }
+
+                if (!condition(account.Balance, model.Amount))
+                {
+                    error = new ErrorModel
+                    {
+                        status = "insufficient funds",
+                        text = "Insufficient balance"
+                    };
+                    return (true, error, response);
+                }
+
+                account.Balance = operation(account.Balance, model.Amount);
+                _accountRepository.add(account);
+
+                var transaction = new TransactionDta
+                {
+                    AccountId = account.Id,
+                    Type = type,
+                    Amount = model.Amount,
+                    Description = model.Description,
+                    Registered = DateTime.Now,
+                    Isreversed = false,
+                    identifier = Generate()
+                };
+                _transactionRepository.Add(transaction);
+                db.SaveChanges();
+
+                response = new TransactionResponse
+                {
+                    Status = "completed",
+                    Account = account.identifier,
+                    BalanceAccount = account.Balance,
+                    TransactionAmount = model.Amount,
+                    identifier = transaction.identifier
+                };
+
+                return (false, error, response);
+            }
+            catch (Exception ex) 
+            {
+            ErrorModel error = new ErrorModel
+            {
+              status = "error",
+              text = $"Transaction failed: {ex.Message}"
             };
-            db.TransactionDta.Add(transaction);
-            db.SaveChanges();
-
-            response = new TransactionResponse
-            {
-                Status = "completed",
-                Account = account.identifier,
-                BalanceAccount = account.Balance,
-                TransactionAmount = model.Amount
-            };
-
-            return (false, error, response);
+             return (true, error, response);
+            }
         }
-        public (bool, ErrorModel) validateModel(TransactionDto model) 
+        public static string Generate()
         {
-            ErrorModel error = new ErrorModel();
+            char firstLetter = (char)_random.Next('A', 'Z' + 1);
+            int number = _random.Next(10000, 99999); // 5 dígitos
+            char lastLetter = (char)_random.Next('A', 'Z' + 1);
 
-            if (string.IsNullOrEmpty(model.Identifier))
-            {
-                error.status = "required field";
-                error.text = "the field identifier is required";
-                return (true, error);
-            }
-            if(model.Amount < 0)
-            {
-                error.status = "required field";
-                error.text = "the field amount must be greater than zero";
-                return (true, error);
-            }
-            return (false, error);
-        }
-        public (bool, ErrorModel) validateModel(TransactionHistoryDto model)
-        {
-            ErrorModel error = new ErrorModel();
-
-            if (string.IsNullOrEmpty(model.Identifier))
-            {
-                error.status = "required field";
-                error.text = "the field identifier is required";
-                return (true, error);
-            }
-            return (false, error);
+            return $"{firstLetter}{number}{lastLetter}";
         }
     }
 }

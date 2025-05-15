@@ -4,7 +4,8 @@
     {
         public string? Status { get; set; }
         public string? Account { get; set; }
-        public int BalanceAccount { get; set; }
-        public int TransactionAmount { get; set; }
+        public decimal BalanceAccount { get; set; }
+        public decimal TransactionAmount { get; set; }
+        public string? identifier { get; set; }
     }
 }
